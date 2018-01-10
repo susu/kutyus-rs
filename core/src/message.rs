@@ -38,16 +38,16 @@ impl PubKey {
 /// TODO use fixed-length array
 /// [`Message`]: struct.Message.html
 #[derive(Debug, PartialEq)]
-pub struct ParentHash(pub Vec<u8>);
+pub struct Hash(pub Vec<u8>);
 
-impl ParentHash {
-    /// Reads an msgpack-formatted optional `ParentHash`
+impl Hash {
+    /// Reads an msgpack-formatted optional `Hash`
     ///
-    /// * zero-length array means lack of the `ParentHash`
-    /// * one-length array means that the `ParentHash` is defined
+    /// * zero-length array means lack of the `Hash`
+    /// * one-length array means that the `Hash` is defined
     ///
     /// The length of the binary array must be 64 bytes
-    pub fn read<R>(buffer: &mut R) -> Result<Option<ParentHash>>
+    pub fn read<R>(buffer: &mut R) -> Result<Option<Hash>>
         where R: io::Read
     {
         use rmp::decode;
@@ -61,7 +61,7 @@ impl ParentHash {
             assert_eq!(hash_length, 64); // TODO proper error handling
             let mut hash_buffer = vec![0u8; 64];
             buffer.read_exact(&mut hash_buffer[..])?;
-            Ok(Some(ParentHash(hash_buffer)))
+            Ok(Some(Hash(hash_buffer)))
         }
     }
 }
@@ -112,7 +112,7 @@ pub struct Message {
     ///
     /// It can be None only in case of the root node.
     /// All child nodes must fill this value.
-    pub parent: Option<ParentHash>,
+    pub parent: Option<Hash>,
 
     /// Application-specific type identifier
     ///
@@ -129,11 +129,11 @@ impl Message {
     /// The format is: an array with 4 items:
     ///
     /// 1. author's public key (32 bytes binary)
-    /// 2. hash of parent node, see [`ParentHash`] for details
+    /// 2. hash of parent node, see [`Hash`] for details
     /// 3. content type (binary, variable length)
     /// 4. content: (binary, variable length)
     ///
-    /// [`ParentHash`]: struct.ParentHash.html
+    /// [`Hash`]: struct.Hash.html
     pub fn write(&self, buffer: &mut Vec<u8>) -> Result<u32>
     {
         use rmp::encode;
@@ -177,7 +177,7 @@ impl Message {
         let mut author_buffer = [0u8; 32];
         buffer.read_exact(&mut author_buffer)?;
 
-        let parent_hash: Option<ParentHash> = ParentHash::read(buffer)?;
+        let parent_hash: Option<Hash> = Hash::read(buffer)?;
 
         let content_type = ContentType::read(buffer)?;
 
@@ -228,7 +228,7 @@ mod tests {
         {
             let message = Message {
                 author: PubKey([1u8; 32]),
-                parent: Some(ParentHash(vec![2u8; 64])),
+                parent: Some(Hash(vec![2u8; 64])),
                 content_type: ContentType::Custom(vec![42u8]),
                 content: vec![255u8, 255u8],
             };

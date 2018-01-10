@@ -11,7 +11,7 @@ pub mod frame;
 pub mod signature;
 // pub mod errors;
 
-mod errors {
+pub mod errors {
     error_chain!{
         foreign_links {
             // TODO separate error chain for msgpack/codec errors
@@ -24,34 +24,26 @@ mod errors {
     }
 }
 
+use errors::Result;
+use errors::ResultExt;
+
 
 // use ring::signature;
 
 pub type PrivKeyBytes = [u8; 85];
 
-#[derive(Debug)]
-pub enum Error {
-    KeyGenError,
-    KeyLoadError,
-    IoError(std::io::Error)
-}
-
-impl std::convert::From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Self { Error::IoError(err) }
-}
-
-pub fn load_key(bytes: &[u8]) -> Result<ring::signature::Ed25519KeyPair, Error>
+pub fn load_key(bytes: &[u8]) -> Result<ring::signature::Ed25519KeyPair>
 {
     let key_pair = ring::signature::Ed25519KeyPair::from_pkcs8(untrusted::Input::from(bytes))
-        .map_err(|_| Error::KeyLoadError)?;
+        .chain_err(|| "Could not load Ed25519 key from PKCS8 bytes")?;
     Ok(key_pair)
 }
 
-pub fn generate_private_key() -> Result<PrivKeyBytes, Error>
+pub fn generate_private_key() -> Result<PrivKeyBytes>
 {
     let randgen = ring::rand::SystemRandom::new();
     let key_bytes = ring::signature::Ed25519KeyPair::generate_pkcs8(&randgen)
-        .map_err(|_| Error::KeyGenError)?;
+        .chain_err(|| "Could not generate Ed25519 key!")?;
 
     Ok(key_bytes)
 }
