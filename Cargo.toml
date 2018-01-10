@@ -5,5 +5,9 @@ authors = ["Marton Suranyi <marton.suranyi@gmail.com>"]
 
 [dependencies]
 kutyus_core = { path = "core" }
+# kutyus_persistence = { path = "persistence" }
+clap = "2.29.0"
+config = "*"
+error-chain = "0.11.0"
 
 [workspace]
