@@ -2,7 +2,6 @@ extern crate clap;
 extern crate config;
 extern crate kutyus;
 extern crate kutyus_core;
-extern crate kutyus_persistence;
 
 use clap::{Arg, App, SubCommand, ArgMatches};
 
