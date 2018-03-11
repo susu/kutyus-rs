@@ -1,0 +1,7 @@
+[package]
+name = "kutyus_network"
+version = "0.1.0"
+authors = ["Marton Suranyi <marton.suranyi@gmail.com>"]
+
+[dependencies]
+error-chain = "0.11.0"
