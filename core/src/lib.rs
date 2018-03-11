@@ -63,9 +63,5 @@ mod tests {
         let invalid = [0u8, 0u8];
         let result = load_key(&invalid);
         assert!(result.is_err());
-        match result {
-            Err(Error::KeyLoadError) => (),
-            _ => panic!("Unexpected result")
-        }
     }
 }
