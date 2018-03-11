@@ -36,30 +36,7 @@ impl Frame {
         })
     }
 
-    pub fn verify(&self, pubkey: &PubKey) -> bool
-    {
-        use ::untrusted::Input;
-        let digest = Frame::digest(&self.message);
-        let message = Input::from(digest.as_ref());
-
-        let signature = Input::from(&self.signature.0[..]);
-        let pubkey_bytes = Input::from(&pubkey.0[..]);
-        ring::signature::verify(&ring::signature::ED25519,
-                                pubkey_bytes,
-                                message,
-                                signature).is_ok()
-    }
-
-    pub fn write(&self, buffer: &mut Vec<u8>) -> Result<u32>
-    {
-        use rmp::encode;
-        encode::write_array_len(buffer, 3)?;
-        encode::write_uint(buffer, 1)?; // version
-        encode::write_bin(buffer, self.message.as_ref())?;
-        encode::write_bin(buffer, &self.signature.0[..])?;
-        Ok(0u32)
-    }
-
+    /// Reads a [`Frame`] from a buffer, but does not verifies the signature
     pub fn read<R>(buffer: &mut R) -> Result<Frame>
         where R: io::Read
     {
@@ -84,6 +61,31 @@ impl Frame {
             message: message_buffer,
             signature: Signature(signature_buffer),
         })
+    }
+
+
+    pub fn verify(&self, pubkey: &PubKey) -> bool
+    {
+        use ::untrusted::Input;
+        let digest = Frame::digest(&self.message);
+        let message = Input::from(digest.as_ref());
+
+        let signature = Input::from(&self.signature.0[..]);
+        let pubkey_bytes = Input::from(&pubkey.0[..]);
+        ring::signature::verify(&ring::signature::ED25519,
+                                pubkey_bytes,
+                                message,
+                                signature).is_ok()
+    }
+
+    pub fn write(&self, buffer: &mut Vec<u8>) -> Result<u32>
+    {
+        use rmp::encode;
+        encode::write_array_len(buffer, 3)?;
+        encode::write_uint(buffer, 1)?; // version
+        encode::write_bin(buffer, self.message.as_ref())?;
+        encode::write_bin(buffer, &self.signature.0[..])?;
+        Ok(0u32)
     }
 
     fn digest(buffer: &Vec<u8>) -> ring::digest::Digest
